@@ -6,6 +6,8 @@ const bodyParser = require('body-parser');
 
 /****** Déclaration des routes *********/
 const userRoutes = require('./routes/user');
+const saucesRoutes = require('./routes/sauces');
+const path = require('path');
 
 /******** Connexion à la base de donnée MongoDB ******/
 mongoose.connect('mongodb+srv://user1:usertraining@cluster0.9mdwx.mongodb.net/test?retryWrites=true&w=majority',
@@ -27,6 +29,8 @@ app.use(bodyParser.json());
 
 /******* Déclaration des fichiers routes *********/ 
 app.use('/api/auth', userRoutes);
+app.use('/api/sauces', saucesRoutes);
+app.use('/images', express.static(path.join(__dirname, 'images')));
 
 /********** Envoi de la requête *********/
 module.exports = app;

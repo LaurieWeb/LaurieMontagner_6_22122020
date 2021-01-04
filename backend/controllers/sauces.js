@@ -1,24 +1,29 @@
-const Sauce = require('../models/Sauce');
+/*********** Ajout d'application *********/
 const fs = require('fs');
 
+/******** Importation du model Sauce *********/ 
+const Sauce = require('../models/Sauce');
+
+/******** Fonction de création d'une sauce *******/
 exports.createSauce = (req, res, next) => {
-    const sauceObject = JSON.parse(req.body.sauce);
-    delete sauceObject._id;
-    const sauce = new Sauce({
-      ...sauceObject,
-      imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
+    const sauceObject = JSON.parse(req.body.sauce); // Récupération du body de la sauce
+    delete sauceObject._id; // Supression de l'id généré par sauceObject pour ne pas avoir une requête impossible avec le nouvel id de la création de sauce
+    const sauce = new Sauce({ // Création d'une nouvelle sauce
+      ...sauceObject, // AJout du body de la sauce sans l'ancien id
+      imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}` // Ajout l'adresse de l'image
     });
-    sauce.save()
+    sauce.save() // Sauvegarde de la sauce
       .then(() => res.status(201).json({ message: 'Objet enregistré !'}))
       .catch(error => res.status(400).json({ error }));
   };
 
-exports.getOneSauce = (req, res, next) => {
-  Sauce.findOne({
-    _id: req.params.id
+/******** Fonction de récupération d'une sauce *******/
+exports.getOneSauce = (req, res, next) => { 
+  Sauce.findOne({ // Fonction de récupération
+    _id: req.params.id // à partir de l'id de la requête
   }).then(
     (sauce) => {
-      res.status(200).json(sauce);
+      res.status(200).json(sauce); // Renvoi de la sauce
     }
   ).catch(
     (error) => {
@@ -29,23 +34,25 @@ exports.getOneSauce = (req, res, next) => {
   );
 };
 
+/******** Fonction de modification d'une sauce *******/
 exports.modifySauce = (req, res, next) => {
-    const sauceObject = req.file ?
+    const sauceObject = req.file ? // Recherche si un fichier image est envoyé
       {
-        ...JSON.parse(req.body.sauce),
-        imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
-      } : { ...req.body };
-    Sauce.updateOne({ _id: req.params.id }, { ...sauceObject, _id: req.params.id })
+        ...JSON.parse(req.body.sauce), 
+        imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}` // Si il y a un fichier, sauceObject = sauce en format JSON + imageURL
+      } : { ...req.body }; // Si il n'y a pas de fichier, sauceObject = corps de la demande req.body
+    Sauce.updateOne({ _id: req.params.id }, { ...sauceObject, _id: req.params.id }) // Fonction de modification en fonction de l'id, qui modifie sauceObject et non l'id
       .then(() => res.status(200).json({ message: 'Objet modifié !'}))
       .catch(error => res.status(400).json({ error }));
   };
 
+/******** Fonction de supression d'une sauce *******/
   exports.deleteSauce = (req, res, next) => {
-    Sauce.findOne({ _id: req.params.id })
+    Sauce.findOne({ _id: req.params.id }) // Fonction de récupération par id
       .then(sauce => {
-        const filename = sauce.imageUrl.split('/images/')[1];
-        fs.unlink(`images/${filename}`, () => {
-          Sauce.deleteOne({ _id: req.params.id })
+        const filename = sauce.imageUrl.split('/images/')[1]; // Supression du dossier image de l'URL
+        fs.unlink(`images/${filename}`, () => { // Supression du fichier par filename
+          Sauce.deleteOne({ _id: req.params.id }) // Fonction de supression par id
             .then(() => res.status(200).json({ message: 'Objet supprimé !'}))
             .catch(error => res.status(400).json({ error }));
         });
@@ -53,8 +60,9 @@ exports.modifySauce = (req, res, next) => {
       .catch(error => res.status(500).json({ error }));
   };
 
+/******** Fonction de récupération de toutes les sauces *******/
 exports.getAllSauces = (req, res, next) => {
-  Sauce.find().then(
+  Sauce.find().then( // Fonction de récupération de tous les objets
     (sauces) => {
       res.status(200).json(sauces);
     }
@@ -67,6 +75,7 @@ exports.getAllSauces = (req, res, next) => {
   );
 };
 
+/******** Fonction de like/dislike d'une sauce *******/
 exports.likeSauce = (req, res, next) => {
   if (req.body.like === 1) { // Si il s'agit d'un like
     Sauce.updateOne({ _id: req.params.id }, // Récupération de la sauce à update

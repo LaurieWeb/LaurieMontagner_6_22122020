@@ -92,7 +92,7 @@ exports.likeSauce = (req, res, next) => {
 
         .then(() => res.status(200).json({ message: 'Dislike ajouté  !' }))
         .catch(error => res.status(400).json({ error }));
-
+                                              
 } else { // Si l'utilisateur annule son like ou dislike
     Sauce.findOne({ _id: req.params.id }) // Récupération de la sauce
 
